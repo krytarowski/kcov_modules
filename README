@@ -1,0 +1,54 @@
+This repository contains various NetBSD KCOV modules.
+
+All of the modules are designed to run on NetBSD 8.99.47 or newer.
+
+The modules print to debugcon (Bochs/Qemu) console.
+
+Dependencies: debugcon_printf
+
+https://github.com/krytarowski/debugcon_printf
+
+hello
+=====
+
+Dummy hello-world kcov(4) module.
+
+afl
+===
+
+Minimal AFL-style kcov(4) module.
+
+INSTALL
+=======
+
+To build the module just enter a directory with example modules and
+use make(1):
+
+    $ make
+
+To load, unload, and stat the module use modload(8), modunload(8) and
+modstat(8).
+
+The S parameter points to src/sys and it can be overloaded in this way:
+
+    $ make S=/data/netbsd/src/sys
+
+The code of a module does not need to be in src/sys unless you use
+the autoconf(9) framework.
+
+A cross-built of a module for a target platform is possible with the
+build.sh framework. You need to generate the toolchain and set
+appropriately PATH to point bin/ in the TOOLDIR path. An example command
+to cross-build a module with the amd64 toolchain is as follows:
+
+   $ nbmake-amd64 S=/data/netbsd/src/sys
+
+HISTORY
+=======
+
+ * 2019-06-25 The first public version of kcov_modules.
+
+AUTHORS
+=======
+
+Kamil Rytarowski <kamil @ NetBSD . org>
