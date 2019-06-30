@@ -4,9 +4,6 @@
  * Copyright (c) 2019 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * This code is derived from software contributed to The NetBSD Foundation
- * by Kamil Rytarowski.
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -43,7 +40,7 @@ __KERNEL_RCSID(0, "$NetBSD$");
 
 #include <debugcon_printf.h>
 
-/* -------------------------- AFL utilities --------------------------- */
+/* -------------------------- AFL Long HASH --------------------------- */
 #define GOLDEN_RATIO_32 0x61C88647
 #define GOLDEN_RATIO_64 0x61C8864680B583EBull
 #define BITS_PER_LONG 	64
@@ -147,8 +144,7 @@ kcov_afl_mmap(void *priv, size_t size, off_t off, struct uvm_object **uobjp)
 	kcov_afl_t *afl;
 
 	afl = (kcov_afl_t *)priv;
-printf("#: size: %lu, off: %lu \n", size, off);
-printf("#: AFL->size:: %lu\n", afl->afl_bsize);
+
 	if ((size + off) > afl->afl_bsize)
 		return ENOMEM;
 
@@ -156,7 +152,6 @@ printf("#: AFL->size:: %lu\n", afl->afl_bsize);
 
 	*uobjp = afl->afl_uobj;
 
-printf("#: MAPPED!! size: %lu, off: %lu \n", size, off);
 	return 0;
 }
 
