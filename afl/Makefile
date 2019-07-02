@@ -3,7 +3,8 @@
 KMOD=	kcov_afl
 SRCS=	kcov_afl.c
 
-CPPFLAGS+=	-I/root/workspace/kcov_4/debugcon_printf/
+$(error uncomment clone and setup debugcon_printf as below)
+# CPPFLAGS+=	-I/~/workspace/debugcon_printf/
 CPPFLAGS+=	-DDIAGNOSTIC
 
 
