@@ -38,7 +38,9 @@ __KERNEL_RCSID(0, "$NetBSD$");
 #include <sys/systm.h>
 #include <uvm/uvm.h>
 
+#if HAVE_DEBUGCON_PRINTF == yes
 #include <debugcon_printf.h>
+#endif
 
 /* -------------------------- AFL Long HASH --------------------------- */
 #define GOLDEN_RATIO_32 0x61C88647
@@ -159,9 +161,9 @@ static void
 kcov_afl_cov_trace_pc(void *priv, intptr_t pc)
 {
 	kcov_afl_t *afl = priv;
-
-//	debugcon_printf("#: '%x'\n", pc);
-
+#if HAVE_DEBUGCON_PRINTF == yes
+	debugcon_printf("#: '%x'\n", pc);
+#endif
 	++afl->afl_area[(afl->afl_prev_loc ^ pc) & (afl->afl_bsize-1)];
 	afl->afl_prev_loc = _long_hash64(pc, BITS_PER_LONG);
 
@@ -201,18 +203,24 @@ kcov_afl_modcmd(modcmd_t cmd, void *arg __unused)
 		error = kcov_ops_set(&kcov_afl_ops);
 		if (error)
 			return error;
+#if HAVE_DEBUGCON_PRINTF == yes
 		debugcon_printf("AFL module loaded.\n");
+#endif
 		break;
 
 	case MODULE_CMD_FINI:
 		error = kcov_ops_unset(&kcov_afl_ops);
 		if (error)
 			return error;
+#if HAVE_DEBUGCON_PRINTF == yes
 		debugcon_printf("AFL module unloaded.\n");
+#endif
 		break;
 
 	case MODULE_CMD_STAT:
+#if HAVE_DEBUGCON_PRINTF == yes
 		debugcon_printf("AFL module status queried.\n");
+#endif
 		break;
 
 	default:
