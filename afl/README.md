@@ -7,8 +7,8 @@ Compilation require debugcon_printf, can be downloaded [from here](https://githu
 
 ```
 # Compile kernel module
-make S=/~/workspace/mybsd/src/sys
+make S=/workspace/netbsd/src/sys
 
 # Compile user space stub 
-gcc ./main.c -o afl_test
+gcc ./example.c -o afl_test
 ```

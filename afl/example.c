@@ -71,10 +71,11 @@ main(void)
                 err(1, "ioctl: KCOV_IOC_DISABLE");
 	/* Print SHM region after the tracing */
 	for (i = 0; i < size; ++i) {
+		unsigned char x = (unsigned char)cover[i];
+		printf("%03x ", x);
 		if (i % 32 == 31) printf("\n");
-
-		printf("%03x ", (char)cover[i]);
 	}
+	printf("\n");
         if (munmap(cover, size) == -1)
                 err(1, "munmap");
         close(fd);
