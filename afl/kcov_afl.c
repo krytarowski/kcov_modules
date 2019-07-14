@@ -4,6 +4,9 @@
  * Copyright (c) 2019 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
+ * This code is derived from software contributed to The NetBSD Foundation
+ * by Maciej Grochowski
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -38,8 +41,10 @@ __KERNEL_RCSID(0, "$NetBSD$");
 #include <sys/systm.h>
 #include <uvm/uvm.h>
 
-#if HAVE_DEBUGCON_PRINTF == yes
+#ifdef HAVE_DEBUGCON_PRINTF
 #include <debugcon_printf.h>
+#else
+#define debugcon_printf(a,...)
 #endif
 
 /* -------------------------- AFL Long HASH --------------------------- */
@@ -48,7 +53,7 @@ __KERNEL_RCSID(0, "$NetBSD$");
 #define BITS_PER_LONG 	64
 
 static uint64_t
-_long_hash64(uint64_t val, unsigned int bits) {
+afl_long_hash64(uint64_t val, unsigned int bits) {
 	return val * GOLDEN_RATIO_64 >> (64 - bits);
 }
 
@@ -57,7 +62,6 @@ typedef struct afl_ctx {
 	struct uvm_object *afl_uobj;
 	size_t afl_bsize;
 	uint64_t afl_prev_loc;
-	lwpid_t lid;
 } kcov_afl_t;
 
 static void *
@@ -66,9 +70,6 @@ kcov_afl_open(void)
 	kcov_afl_t *afl;
 
 	afl = kmem_zalloc(sizeof(*afl), KM_SLEEP);
-
-	/* curlwp can differ for other calls, store the one from open(2) */
-	afl->lid = curlwp->l_lid;
 
 	return afl;
 }
@@ -161,11 +162,11 @@ static void
 kcov_afl_cov_trace_pc(void *priv, intptr_t pc)
 {
 	kcov_afl_t *afl = priv;
-#if HAVE_DEBUGCON_PRINTF == yes
+
 	debugcon_printf("#: '%x'\n", pc);
-#endif
+
 	++afl->afl_area[(afl->afl_prev_loc ^ pc) & (afl->afl_bsize-1)];
-	afl->afl_prev_loc = _long_hash64(pc, BITS_PER_LONG);
+	afl->afl_prev_loc = afl_long_hash64(pc, BITS_PER_LONG);
 
 	return;
 }
@@ -191,7 +192,11 @@ static struct kcov_ops kcov_afl_ops = {
 	.cov_trace_cmp = kcov_afl_cov_trace_cmp
 };
 
+#ifdef HAVE_DEBUGCON_PRINTF
 MODULE(MODULE_CLASS_MISC, kcov_afl, "kcov,debugcon_printf");
+#else
+MODULE(MODULE_CLASS_MISC, kcov_afl, "kcov");
+#endif
 
 static int
 kcov_afl_modcmd(modcmd_t cmd, void *arg __unused)
@@ -203,24 +208,21 @@ kcov_afl_modcmd(modcmd_t cmd, void *arg __unused)
 		error = kcov_ops_set(&kcov_afl_ops);
 		if (error)
 			return error;
-#if HAVE_DEBUGCON_PRINTF == yes
+
 		debugcon_printf("AFL module loaded.\n");
-#endif
 		break;
 
 	case MODULE_CMD_FINI:
 		error = kcov_ops_unset(&kcov_afl_ops);
 		if (error)
 			return error;
-#if HAVE_DEBUGCON_PRINTF == yes
+
 		debugcon_printf("AFL module unloaded.\n");
-#endif
 		break;
 
 	case MODULE_CMD_STAT:
-#if HAVE_DEBUGCON_PRINTF == yes
 		debugcon_printf("AFL module status queried.\n");
-#endif
+
 		break;
 
 	default:
